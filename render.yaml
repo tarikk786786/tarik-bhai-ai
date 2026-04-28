@@ -1,0 +1,42 @@
+services:
+  # Single web service: Express serves both the API and the React frontend.
+  # No CORS issues, no cross-origin complexity — everything on one URL.
+  - type: web
+    name: tarik-bhai-ai
+    runtime: node
+    plan: free
+    region: oregon
+
+    # 1. Install deps, build the React frontend (output -> artifacts/godmode/dist/public)
+    # 2. Build the Express backend (output -> artifacts/api-server/dist)
+    buildCommand: |
+      pnpm install --no-frozen-lockfile &&
+      PORT=3000 BASE_PATH=/ pnpm --filter @workspace/godmode run build &&
+      pnpm --filter @workspace/api-server run build
+
+    startCommand: node artifacts/api-server/dist/index.mjs
+
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SESSION_SECRET
+        generateValue: true
+      # Your OpenAI or OpenRouter key — set this in the Render dashboard
+      - key: OPENAI_API_KEY
+        sync: false
+      # If you use OpenRouter instead, set this key
+      - key: OPENROUTER_API_KEY
+        sync: false
+      # Database (optional — only needed if you want history persistence)
+      - key: DATABASE_URL
+        sync: false
+
+databases:
+  - name: tarik-bhai-db
+    plan: free
+    databaseName: tarikbhai
+    user: tarikbhai
