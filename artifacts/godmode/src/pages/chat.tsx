@@ -9,6 +9,7 @@ import { useBackendConfig } from "@/hooks/use-backend-config";
 import { Link, useSearch } from "wouter";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { API_BASE } from "@/lib/api";
 
 /* ─── Welcome Intro Animation ─────────────────────────────── */
 
@@ -275,7 +276,6 @@ Yeh sirf AI nahi… ek intelligent system hai jo aapko samajh kar kaam karta hai
 };
 
 const STORAGE_KEY = "tarik_bhai_chat_history";
-const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 function loadHistory(): Message[] {
   try {
@@ -367,7 +367,7 @@ export default function ChatPage() {
       const isOR = apiKey.startsWith("sk-or-");
       const modelId = apiKey ? (isOR ? selectedModel.orId : selectedModel.id) : selectedModel.id;
 
-      const res = await fetch(`${BASE_URL}/api/chat`, {
+      const res = await fetch(`${API_BASE}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
