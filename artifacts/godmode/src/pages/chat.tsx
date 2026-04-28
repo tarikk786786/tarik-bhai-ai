@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, ChevronDown, Wand2, Cpu, Copy, Check, Trash2, KeyRound, Zap } from "lucide-react";
 import { useApiKey } from "@/hooks/use-api-key";
+import { useBackendConfig } from "@/hooks/use-backend-config";
 import { Link, useSearch } from "wouter";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -105,6 +106,8 @@ function TypingIndicator() {
 
 export default function ChatPage() {
   const { apiKey } = useApiKey();
+  const { hasBackendKey } = useBackendConfig();
+  const canChat = !!apiKey || hasBackendKey;
   const search = useSearch();
   const searchParams = new URLSearchParams(search);
   const initialQ = searchParams.get("q") || "";
@@ -147,7 +150,7 @@ export default function ChatPage() {
   const handleSend = async (e?: React.FormEvent, overrideInput?: string) => {
     e?.preventDefault();
     const text = (overrideInput ?? input).trim();
-    if (!text || loading || !apiKey) return;
+    if (!text || loading || !canChat) return;
 
     const userMsg: Message = {
       id: `u_${Date.now()}`,
@@ -175,7 +178,10 @@ export default function ChatPage() {
         .map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content }));
 
       const isOpenRouter = apiKey.startsWith("sk-or-");
-      const modelId = isOpenRouter ? selectedModel.orId : selectedModel.id;
+      // If user has a key, pick the right model ID for that API; otherwise let backend decide
+      const modelId = apiKey
+        ? (isOpenRouter ? selectedModel.orId : selectedModel.id)
+        : selectedModel.id;
 
       const response = await fetch(`${BASE_URL}/api/chat`, {
         method: "POST",
@@ -183,7 +189,8 @@ export default function ChatPage() {
         body: JSON.stringify({
           messages: [...history, { role: "user", content: text }],
           model: modelId,
-          apiKey,
+          // Only send apiKey if user has their own; backend uses env var otherwise
+          ...(apiKey ? { apiKey } : {}),
           mode: selectedMode.id,
           stream: true,
         }),
@@ -244,9 +251,9 @@ export default function ChatPage() {
       className="flex flex-col h-full max-w-3xl mx-auto w-full relative font-sans"
       onClick={() => { setShowModelMenu(false); setShowModeMenu(false); }}
     >
-      {/* API Key Warning */}
+      {/* API Key Warning — only show if no backend key AND no user key */}
       <AnimatePresence>
-        {!apiKey && (
+        {!canChat && (
           <motion.div
             initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
             className="mx-3 mt-2 border border-yellow-500/40 bg-yellow-500/10 p-3 flex items-center justify-between gap-3 rounded-2xl"
@@ -468,8 +475,8 @@ export default function ChatPage() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={apiKey ? "Message Tarik Bhai AI... (Enter to send)" : "Set your API key first..."}
-              disabled={loading || !apiKey}
+              placeholder={canChat ? "Message Tarik Bhai AI... (Enter to send)" : "Set your API key first..."}
+              disabled={loading || !canChat}
               rows={1}
               className="w-full text-[15px] text-[#e9edef] placeholder-[#8696a0] resize-none disabled:opacity-40 focus:outline-none rounded-2xl px-4 py-3"
               style={{
@@ -498,13 +505,13 @@ export default function ChatPage() {
           <motion.button
             whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.88 }}
             type="submit"
-            disabled={!input.trim() || loading || !apiKey}
+            disabled={!input.trim() || loading || !canChat}
             className="w-12 h-12 text-[#0b141a] rounded-2xl flex items-center justify-center shrink-0 disabled:opacity-35 transition-all"
             style={{
-              background: !input.trim() || loading || !apiKey
+              background: !input.trim() || loading || !canChat
                 ? "rgba(0,168,132,0.3)"
                 : "linear-gradient(135deg, #00a884, #00e5c0)",
-              boxShadow: input.trim() && !loading && apiKey ? "0 0 18px rgba(0,168,132,0.5)" : "none",
+              boxShadow: input.trim() && !loading && canChat ? "0 0 18px rgba(0,168,132,0.5)" : "none",
             }}
           >
             {loading ? (

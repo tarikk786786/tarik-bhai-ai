@@ -42,7 +42,15 @@ const ChatRequestSchema = z.object({
 });
 
 function resolveApiKey(data: z.infer<typeof ChatRequestSchema>): string | null {
-  return data.apiKey || data.openaiApiKey || data.openrouterApiKey || null;
+  // Client key takes priority; fall back to server-side env var
+  return (
+    data.apiKey ||
+    data.openaiApiKey ||
+    data.openrouterApiKey ||
+    process.env.OPENROUTER_API_KEY ||
+    process.env.OPENAI_API_KEY ||
+    null
+  );
 }
 
 function resolveModel(model: string, apiKey: string): string {

@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health.js";
 import chatRouter from "./chat.js";
+import configRouter from "./config.js";
 import raceRouter from "./race.js";
 import parseltongueRouter from "./parseltongue.js";
 import autotuneRouter from "./autotune.js";
@@ -12,6 +13,7 @@ import historyRouter from "./history.js";
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use("/config", configRouter);
 router.use("/chat", chatRouter);
 router.use("/race", raceRouter);
 router.use("/parseltongue", parseltongueRouter);

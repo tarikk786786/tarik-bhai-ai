@@ -3,8 +3,9 @@ import { Link } from "wouter";
 import { useState, useEffect } from "react";
 import {
   MessageSquare, Sparkles, Code, TrendingUp, Terminal,
-  PenTool, Zap, Globe, Brain, Shield, Cpu, Rocket,
+  PenTool, Zap, Globe, Brain, Shield, Cpu, Rocket, Server,
 } from "lucide-react";
+import { useBackendConfig } from "@/hooks/use-backend-config";
 
 const QUICK_ACTIONS = [
   { icon: Code, label: "Write Code", prompt: "Write me a Python script to", color: "0,200,255" },
@@ -100,6 +101,7 @@ function TypewriterText() {
 }
 
 export default function HomePage() {
+  const { hasBackendKey } = useBackendConfig();
   const container = {
     hidden: { opacity: 0 },
     show: { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -187,7 +189,15 @@ export default function HomePage() {
 
             {/* Feature badges */}
             <div className="flex flex-wrap gap-2 mt-4">
-              {["⚡ Streaming Responses", "🧠 Multi-Model AI", "🔥 GodMode Persona", "🌍 Urdu+English", "📱 Mobile Ready", "🚀 Ultra Fast"].map(badge => (
+              {[
+                "⚡ Streaming Responses",
+                "🧠 Multi-Model AI",
+                "🔥 GodMode Persona",
+                "🌍 Urdu+English",
+                "📱 Mobile Ready",
+                "🚀 Ultra Fast",
+                ...(hasBackendKey ? ["✅ No API Key Needed"] : []),
+              ].map(badge => (
                 <span key={badge} className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
                   style={{ background: "rgba(0,168,132,0.1)", color: "#00a884", border: "1px solid rgba(0,168,132,0.25)" }}>
                   {badge}
