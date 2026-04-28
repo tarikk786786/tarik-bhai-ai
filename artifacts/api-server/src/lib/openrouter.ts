@@ -312,6 +312,69 @@ export const RACE_TIERS: Record<string, string[]> = {
   ],
 };
 
+export async function streamChatWithModel(
+  options: ChatOptions,
+  onToken: (chunk: string) => void
+): Promise<string> {
+  const apiBase = getApiBase(options.apiKey);
+  const isOpenRouter = apiBase === OPENROUTER_BASE;
+
+  const response = await fetch(`${apiBase}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${options.apiKey}`,
+      "Content-Type": "application/json",
+      ...(isOpenRouter ? { "HTTP-Referer": "https://tarikbhai.replit.app", "X-Title": "tarik Bhai AI" } : {}),
+    },
+    body: JSON.stringify({
+      model: options.model,
+      messages: options.messages,
+      stream: true,
+      ...(options.params ?? {}),
+    }),
+  });
+
+  if (!response.ok || !response.body) {
+    const text = await response.text();
+    throw new Error(`${response.status}: ${text}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullContent = "";
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith("data: ")) continue;
+      const data = trimmed.slice(6);
+      if (data === "[DONE]") break;
+      try {
+        const parsed = JSON.parse(data) as {
+          choices: Array<{ delta: { content?: string }; finish_reason?: string }>;
+        };
+        const chunk = parsed.choices?.[0]?.delta?.content ?? "";
+        if (chunk) {
+          fullContent += chunk;
+          onToken(chunk);
+        }
+      } catch {
+        // skip malformed lines
+      }
+    }
+  }
+
+  return fullContent;
+}
+
 export function scoreResponse(content: string, latencyMs: number): number {
   if (!content || content.length < 10) return 0;
 
