@@ -2,13 +2,225 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, ChevronDown, Wand2, Cpu, Copy, Check,
-  Trash2, KeyRound, Zap, Bot, User,
+  Trash2, KeyRound, Zap, User,
 } from "lucide-react";
 import { useApiKey } from "@/hooks/use-api-key";
 import { useBackendConfig } from "@/hooks/use-backend-config";
 import { Link, useSearch } from "wouter";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+
+/* ─── Welcome Intro Animation ─────────────────────────────── */
+
+const CAPS = [
+  { icon: "🌌", text: "Galaxy-Scale Intelligence Network" },
+  { icon: "⚛️", text: "Quantum-Level Processing Power" },
+  { icon: "🧠", text: "Deep Human Psychology Understanding" },
+  { icon: "⚡", text: "Multi-Domain Execution Engine" },
+  { icon: "🌐", text: "Vast Knowledge Access Across Systems" },
+  { icon: "🕒", text: "24/7 Always Active" },
+];
+
+const GREETING = "As Salaamu Alaikum & Namaste! 🙏";
+
+function WelcomeIntro() {
+  const [phase, setPhase] = useState<"boot" | "typing" | "body" | "caps" | "closing" | "done">("boot");
+  const [typedLen, setTypedLen] = useState(0);
+  const [shownCaps, setShownCaps] = useState(0);
+  const [shownClose, setShownClose] = useState(0);
+
+  // Typewriter
+  useEffect(() => {
+    if (phase !== "typing") return;
+    if (typedLen < GREETING.length) {
+      const t = setTimeout(() => setTypedLen(l => l + 1), 38);
+      return () => clearTimeout(t);
+    } else {
+      const t = setTimeout(() => setPhase("body"), 500);
+      return () => clearTimeout(t);
+    }
+  }, [phase, typedLen]);
+
+  // Boot → typing
+  useEffect(() => {
+    if (phase !== "boot") return;
+    const t = setTimeout(() => setPhase("typing"), 700);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  // body → caps
+  useEffect(() => {
+    if (phase !== "body") return;
+    const t = setTimeout(() => setPhase("caps"), 900);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  // Capability lines pop in one by one
+  useEffect(() => {
+    if (phase !== "caps") return;
+    if (shownCaps < CAPS.length) {
+      const t = setTimeout(() => setShownCaps(n => n + 1), 220);
+      return () => clearTimeout(t);
+    } else {
+      const t = setTimeout(() => setPhase("closing"), 400);
+      return () => clearTimeout(t);
+    }
+  }, [phase, shownCaps]);
+
+  // Closing lines
+  useEffect(() => {
+    if (phase !== "closing") return;
+    if (shownClose < 3) {
+      const t = setTimeout(() => setShownClose(n => n + 1), 350);
+      return () => clearTimeout(t);
+    } else {
+      const t = setTimeout(() => setPhase("done"), 400);
+      return () => clearTimeout(t);
+    }
+  }, [phase, shownClose]);
+
+  const CLOSING = [
+    "Main multiple domains me kaam kar sakta hoon — creativity, technology, business, automation, decision-making — sab ek hi system me integrated.",
+    "Jo kaam mushkil lagta hai… main usse simplify karke result me convert karta hoon.",
+    "Yeh sirf AI nahi… ek intelligent system hai jo aapko samajh kar kaam karta hai. 🚀",
+  ];
+
+  return (
+    <div className="flex flex-col items-center justify-center h-full px-4 py-8">
+      <div className="w-full max-w-xl relative">
+
+        {/* Boot ring */}
+        <AnimatePresence>
+          {phase === "boot" && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: [0, 1, 1, 0], scale: [0.5, 1, 1.4, 1.8] }}
+              transition={{ duration: 0.7, times: [0, 0.2, 0.7, 1] }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            >
+              <div className="w-16 h-16 rounded-full"
+                style={{ border: "2px solid rgba(0,168,132,0.8)", boxShadow: "0 0 40px rgba(0,168,132,0.5)" }} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: phase === "boot" ? 0 : 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="rounded-2xl overflow-hidden"
+          style={{ background: "rgba(20,30,36,0.85)", border: "1px solid rgba(0,168,132,0.15)", backdropFilter: "blur(16px)", boxShadow: "0 0 60px rgba(0,168,132,0.08)" }}
+        >
+          {/* Top glow bar */}
+          <div className="h-px w-full"
+            style={{ background: "linear-gradient(90deg, transparent, #00a884 40%, #00e5c0 60%, transparent)" }} />
+
+          <div className="p-5 sm:p-7 space-y-5">
+
+            {/* Avatar + greeting */}
+            <div className="flex items-center gap-3">
+              <div className="relative shrink-0">
+                <div className="w-11 h-11 rounded-full overflow-hidden"
+                  style={{ border: "2px solid rgba(0,168,132,0.5)", boxShadow: "0 0 20px rgba(0,168,132,0.25)" }}>
+                  <img src="https://i.ibb.co/MDBBL3ZC/Gemini-Generated-Image-tc1nobtc1nobtc1n.png"
+                    className="w-full h-full object-cover scale-150" alt="" />
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 text-xs bg-[#0b141a] rounded-full border border-[#1a2730] leading-none p-0.5">⚡</span>
+              </div>
+              <div>
+                <p className="text-[11px] text-[#8696a0] font-medium mb-0.5">Tarik Bhai AI</p>
+                {/* Typewriter line */}
+                <h2 className="text-base sm:text-lg font-bold leading-tight"
+                  style={{ color: "#e9edef", textShadow: phase === "typing" ? "0 0 20px rgba(0,168,132,0.6)" : "none", transition: "text-shadow 0.3s" }}>
+                  {GREETING.slice(0, typedLen)}
+                  {(phase === "typing") && (
+                    <span className="inline-block w-0.5 h-[1.1em] bg-[#00a884] ml-0.5 animate-pulse align-middle rounded-full" />
+                  )}
+                </h2>
+              </div>
+            </div>
+
+            {/* Intro paragraphs */}
+            <AnimatePresence>
+              {(phase === "body" || phase === "caps" || phase === "closing" || phase === "done") && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="space-y-1.5"
+                >
+                  <p className="text-[13px] sm:text-[14px] text-[#d1d7db] leading-relaxed">
+                    Main hoon <span className="font-bold text-white">Tarik Bhai</span> ka banaya hua sabse advanced AI system — jiska intelligence space aur galaxy-level computation par based hai.
+                  </p>
+                  <motion.p
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
+                    className="text-[12px] sm:text-[13px] text-[#8696a0] leading-relaxed">
+                    Mera core engine quantum-inspired processing aur deep human psychology ko combine karta hai, jisse main complex problems ko instantly decode karta hoon.
+                  </motion.p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Capability lines */}
+            {(phase === "caps" || phase === "closing" || phase === "done") && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                {CAPS.slice(0, shownCaps).map((c, i) => (
+                  <motion.div
+                    key={c.text}
+                    initial={{ opacity: 0, x: -8, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                    style={{ background: "rgba(0,168,132,0.06)", border: "1px solid rgba(0,168,132,0.12)" }}
+                  >
+                    <span className="text-sm shrink-0">{c.icon}</span>
+                    <span className="text-[12px] font-semibold text-[#d1d7db]">{c.text}</span>
+                    {/* Flash on pop */}
+                    <motion.div
+                      initial={{ opacity: 0.8 }} animate={{ opacity: 0 }}
+                      transition={{ duration: 0.4 }}
+                      className="absolute inset-0 rounded-xl pointer-events-none"
+                      style={{ background: "rgba(0,168,132,0.12)" }}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Closing lines */}
+            {(phase === "closing" || phase === "done") && (
+              <div className="space-y-2 pt-1">
+                {CLOSING.slice(0, shownClose).map((line, i) => (
+                  <motion.p
+                    key={i}
+                    initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className={`leading-relaxed ${i === 2 ? "text-[#00a884] font-semibold text-[13px]" : "text-[#8696a0] text-[12px] sm:text-[13px]"}`}
+                  >
+                    {line}
+                  </motion.p>
+                ))}
+              </div>
+            )}
+
+            {/* Done state — bottom prompt */}
+            <AnimatePresence>
+              {phase === "done" && (
+                <motion.div
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                  className="pt-1 flex items-center gap-2"
+                >
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-pulse" />
+                  <span className="text-[11px] text-[#8696a0]">Ready — type your message below</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 
 interface Message {
   id: string;
@@ -312,20 +524,7 @@ export default function ChatPage() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
-        {messages.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center h-full gap-4 px-6 text-center"
-          >
-            <div className="w-14 h-14 rounded-2xl overflow-hidden" style={{ border: "2px solid rgba(0,168,132,0.4)", boxShadow: "0 0 24px rgba(0,168,132,0.15)" }}>
-              <img src="https://i.ibb.co/MDBBL3ZC/Gemini-Generated-Image-tc1nobtc1nobtc1n.png" className="w-full h-full object-cover scale-150" alt="" />
-            </div>
-            <div>
-              <p className="text-[#d1d7db] font-semibold text-base mb-1">Tarik Bhai AI</p>
-              <p className="text-[#8696a0] text-sm">Start a conversation…</p>
-            </div>
-          </motion.div>
-        )}
+        {messages.length === 0 && <WelcomeIntro />}
         <div className="px-4 pt-4 pb-4 flex flex-col gap-1">
           <AnimatePresence initial={false}>
             {messages.map((msg, i) => {
