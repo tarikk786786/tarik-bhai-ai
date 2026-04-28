@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { API_BASE } from "@/lib/api";
 
 interface BackendConfig {
   hasBackendKey: boolean;
@@ -14,7 +13,7 @@ const _listeners: Array<(c: BackendConfig) => void> = [];
 async function fetchConfig(): Promise<BackendConfig> {
   if (_cache) return _cache;
   try {
-    const res = await fetch(`${BASE_URL}/api/config`);
+    const res = await fetch(`${API_BASE}/config`);
     if (res.ok) {
       _cache = await res.json() as BackendConfig;
     } else {
