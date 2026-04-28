@@ -70,10 +70,10 @@ function loadHistory(): Message[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed: Message[] = JSON.parse(raw);
-      return parsed.map(m => m.id === "welcome" ? WELCOME_MSG : m);
+      return parsed.filter(m => m.id !== "welcome");
     }
   } catch {}
-  return [WELCOME_MSG];
+  return [];
 }
 
 function saveHistory(msgs: Message[]) {
@@ -200,7 +200,7 @@ export default function ChatPage() {
     }
   };
 
-  const clearChat = () => { setMessages([WELCOME_MSG]); localStorage.removeItem(STORAGE_KEY); };
+  const clearChat = () => { setMessages([]); localStorage.removeItem(STORAGE_KEY); };
 
   return (
     <div className="flex flex-col h-full w-full max-w-3xl mx-auto relative" onClick={() => { setShowModelMenu(false); setShowModeMenu(false); }}>
@@ -312,6 +312,20 @@ export default function ChatPage() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
+        {messages.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center h-full gap-4 px-6 text-center"
+          >
+            <div className="w-14 h-14 rounded-2xl overflow-hidden" style={{ border: "2px solid rgba(0,168,132,0.4)", boxShadow: "0 0 24px rgba(0,168,132,0.15)" }}>
+              <img src="https://i.ibb.co/MDBBL3ZC/Gemini-Generated-Image-tc1nobtc1nobtc1n.png" className="w-full h-full object-cover scale-150" alt="" />
+            </div>
+            <div>
+              <p className="text-[#d1d7db] font-semibold text-base mb-1">Tarik Bhai AI</p>
+              <p className="text-[#8696a0] text-sm">Start a conversation…</p>
+            </div>
+          </motion.div>
+        )}
         <div className="px-4 pt-4 pb-4 flex flex-col gap-1">
           <AnimatePresence initial={false}>
             {messages.map((msg, i) => {
