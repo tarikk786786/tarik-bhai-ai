@@ -336,7 +336,21 @@ export async function streamChatWithModel(
 
   if (!response.ok || !response.body) {
     const text = await response.text();
-    throw new Error(`${response.status}: ${text}`);
+    let friendly = `API error ${response.status}`;
+    try {
+      const json = JSON.parse(text);
+      const msg: string = json?.error?.message ?? text;
+      if (response.status === 402 || msg.toLowerCase().includes("credits") || msg.toLowerCase().includes("insufficient")) {
+        friendly = "No API credits available. Add credits at openrouter.ai/settings/credits, or go to Settings and enter your own API key.";
+      } else if (response.status === 429) {
+        friendly = "Rate limit reached. Please wait a moment and try again, or add your own API key in Settings.";
+      } else if (response.status === 401) {
+        friendly = "Invalid API key. Please check your key in Settings.";
+      } else {
+        friendly = msg.slice(0, 200);
+      }
+    } catch {}
+    throw new Error(friendly);
   }
 
   const reader = response.body.getReader();

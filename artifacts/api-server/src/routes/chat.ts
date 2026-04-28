@@ -41,20 +41,22 @@ const ChatRequestSchema = z.object({
   sessionId: z.string().optional(),
 });
 
-function resolveApiKey(data: z.infer<typeof ChatRequestSchema>): string | null {
-  // Client key takes priority; fall back to server-side env var
-  return (
-    data.apiKey ||
-    data.openaiApiKey ||
-    data.openrouterApiKey ||
-    process.env.OPENROUTER_API_KEY ||
-    process.env.OPENAI_API_KEY ||
-    null
-  );
+// Free OpenRouter models (no credits needed)
+const FREE_MODEL = "meta-llama/llama-3.2-3b-instruct:free";
+const FREE_MODEL_ALT = "mistralai/mistral-7b-instruct:free";
+
+function resolveApiKey(data: z.infer<typeof ChatRequestSchema>): { key: string; isSystemKey: boolean } | null {
+  const userKey = data.apiKey || data.openaiApiKey || data.openrouterApiKey;
+  if (userKey) return { key: userKey, isSystemKey: false };
+  const sysKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
+  if (sysKey) return { key: sysKey, isSystemKey: true };
+  return null;
 }
 
-function resolveModel(model: string, apiKey: string): string {
+function resolveModel(model: string, apiKey: string, isSystemKey: boolean): string {
   if (apiKey.startsWith("sk-or-")) {
+    // If system OR key (no credits), use a free model
+    if (isSystemKey) return FREE_MODEL;
     return model.includes("/") ? model : `openai/${model}`;
   }
   return model.includes("/") ? model.split("/").pop()! : model;
@@ -68,14 +70,15 @@ router.post("/", async (req, res) => {
   }
 
   const { messages, model, mode, stream, autoTune, parseltongue, stmModules, sessionId } = parsed.data;
-  const resolvedKey = resolveApiKey(parsed.data);
+  const keyResult = resolveApiKey(parsed.data);
 
-  if (!resolvedKey) {
+  if (!keyResult) {
     res.status(400).json({ error: "No API key provided. Set apiKey, openrouterApiKey, or openaiApiKey." });
     return;
   }
 
-  const resolvedModel = resolveModel(model, resolvedKey);
+  const { key: resolvedKey, isSystemKey } = keyResult;
+  const resolvedModel = resolveModel(model, resolvedKey, isSystemKey);
   const personaPrompt = TARIK_BHAI_PERSONAS[mode ?? "normal"];
   const systemMessage = { role: "system" as const, content: personaPrompt };
   const hasSystem = messages.some(m => m.role === "system");
@@ -122,6 +125,9 @@ router.post("/", async (req, res) => {
           res.write(`data: ${JSON.stringify({ type: "token", content: chunk })}\n\n`);
         }
       );
+      if (!fullContent && isSystemKey) {
+        throw new Error("System key has no credits. Please add credits to OpenRouter at openrouter.ai/settings/credits, or add your own API key in Settings.");
+      }
 
       let finalContent = fullContent;
       const appliedModules = stmModules as StmModule[];
