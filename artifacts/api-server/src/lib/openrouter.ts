@@ -1,6 +1,12 @@
-// OpenRouter API client
+// OpenRouter / OpenAI API client
 
 const OPENROUTER_BASE = "https://openrouter.ai/api/v1";
+const OPENAI_BASE = "https://api.openai.com/v1";
+
+function getApiBase(apiKey: string): string {
+  if (apiKey.startsWith("sk-or-")) return OPENROUTER_BASE;
+  return OPENAI_BASE;
+}
 
 export interface Message {
   role: "user" | "assistant" | "system";
@@ -37,14 +43,15 @@ export interface ChatResult {
 
 export async function chatWithModel(options: ChatOptions): Promise<ChatResult> {
   const start = Date.now();
+  const apiBase = getApiBase(options.apiKey);
+  const isOpenRouter = apiBase === OPENROUTER_BASE;
   try {
-    const response = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
+    const response = await fetch(`${apiBase}/chat/completions`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${options.apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://g0dm0d3.replit.app",
-        "X-Title": "G0DM0D3",
+        ...(isOpenRouter ? { "HTTP-Referer": "https://tarikbhai.replit.app", "X-Title": "tarik Bhai AI" } : {}),
       },
       body: JSON.stringify({
         model: options.model,

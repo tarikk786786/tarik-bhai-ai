@@ -1,4 +1,3 @@
-import { Layout } from "@/components/layout";
 import { useListHistory, useClearHistory } from "@workspace/api-client-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -19,8 +18,8 @@ export default function HistoryPage() {
   };
 
   return (
-    <Layout>
-      <div className="flex flex-col h-full space-y-6">
+    <div className="flex-1 overflow-y-auto p-6 bg-[#0b141a] font-sans">
+      <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div>
             <h2 className="text-2xl font-bold uppercase tracking-wider text-primary">Execution Logs</h2>
@@ -98,6 +97,6 @@ export default function HistoryPage() {
           )}
         </div>
       </div>
-    </Layout>
+    </div>
   );
 }

@@ -1,4 +1,3 @@
-import { Layout } from "@/components/layout";
 import { useGetStats } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Activity, Zap, MessageSquare, Trophy, Clock, BarChart4 } from "lucide-react";
@@ -7,8 +6,8 @@ export default function StatsPage() {
   const { data: stats, isLoading } = useGetStats();
 
   return (
-    <Layout>
-      <div className="space-y-6">
+    <div className="flex-1 overflow-y-auto p-6 bg-[#0b141a] font-sans">
+      <div className="max-w-5xl mx-auto space-y-6">
         <div className="border-b border-border pb-4">
           <h2 className="text-2xl font-bold uppercase tracking-wider text-primary">System Telemetry</h2>
           <p className="text-muted-foreground mt-2 font-mono text-sm">Aggregated orchestration metrics and performance data.</p>
@@ -112,6 +111,6 @@ export default function StatsPage() {
           </div>
         )}
       </div>
-    </Layout>
+    </div>
   );
 }
