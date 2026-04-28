@@ -41,22 +41,39 @@ const ChatRequestSchema = z.object({
   sessionId: z.string().optional(),
 });
 
-// Free OpenRouter models (no credits needed)
-const FREE_MODEL = "meta-llama/llama-3.2-3b-instruct:free";
-const FREE_MODEL_ALT = "mistralai/mistral-7b-instruct:free";
+// Replit AI integration (no credits needed - uses Replit's built-in AI access)
+const REPLIT_AI_BASE_URL = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
+const REPLIT_AI_API_KEY = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+const REPLIT_AI_MODEL = "gpt-4o-mini"; // reliable, fast model via Replit integration
 
-function resolveApiKey(data: z.infer<typeof ChatRequestSchema>): { key: string; isSystemKey: boolean } | null {
+function resolveApiKey(data: z.infer<typeof ChatRequestSchema>): {
+  key: string;
+  isSystemKey: boolean;
+  baseUrl?: string;
+  model?: string;
+} | null {
   const userKey = data.apiKey || data.openaiApiKey || data.openrouterApiKey;
   if (userKey) return { key: userKey, isSystemKey: false };
+
+  // Prefer Replit AI integration (always works, no credits needed)
+  if (REPLIT_AI_BASE_URL && REPLIT_AI_API_KEY) {
+    return {
+      key: REPLIT_AI_API_KEY,
+      isSystemKey: true,
+      baseUrl: REPLIT_AI_BASE_URL,
+      model: REPLIT_AI_MODEL,
+    };
+  }
+
+  // Last resort: any configured key in env
   const sysKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
   if (sysKey) return { key: sysKey, isSystemKey: true };
   return null;
 }
 
-function resolveModel(model: string, apiKey: string, isSystemKey: boolean): string {
+function resolveModel(model: string, apiKey: string, isSystemKey: boolean, overrideModel?: string): string {
+  if (overrideModel) return overrideModel;
   if (apiKey.startsWith("sk-or-")) {
-    // If system OR key (no credits), use a free model
-    if (isSystemKey) return FREE_MODEL;
     return model.includes("/") ? model : `openai/${model}`;
   }
   return model.includes("/") ? model.split("/").pop()! : model;
@@ -77,8 +94,8 @@ router.post("/", async (req, res) => {
     return;
   }
 
-  const { key: resolvedKey, isSystemKey } = keyResult;
-  const resolvedModel = resolveModel(model, resolvedKey, isSystemKey);
+  const { key: resolvedKey, isSystemKey, baseUrl, model: modelOverride } = keyResult;
+  const resolvedModel = resolveModel(model, resolvedKey, isSystemKey, modelOverride);
   const personaPrompt = TARIK_BHAI_PERSONAS[mode ?? "normal"];
   const systemMessage = { role: "system" as const, content: personaPrompt };
   const hasSystem = messages.some(m => m.role === "system");
@@ -120,14 +137,11 @@ router.post("/", async (req, res) => {
 
     try {
       const fullContent = await streamChatWithModel(
-        { model: resolvedModel, messages: processedMessages, apiKey: resolvedKey, params },
+        { model: resolvedModel, messages: processedMessages, apiKey: resolvedKey, params, baseUrl },
         (chunk) => {
           res.write(`data: ${JSON.stringify({ type: "token", content: chunk })}\n\n`);
         }
       );
-      if (!fullContent && isSystemKey) {
-        throw new Error("System key has no credits. Please add credits to OpenRouter at openrouter.ai/settings/credits, or add your own API key in Settings.");
-      }
 
       let finalContent = fullContent;
       const appliedModules = stmModules as StmModule[];
