@@ -1,6 +1,8 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
+import { join } from "path";
+import { existsSync } from "fs";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -30,5 +32,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+
+// In production, serve the built React frontend from the same server.
+// This means one Render service handles everything — no CORS, no cross-origin.
+if (process.env.NODE_ENV === "production") {
+  const frontendDist = join(process.cwd(), "artifacts/godmode/dist/public");
+  if (existsSync(frontendDist)) {
+    app.use(express.static(frontendDist));
+    // SPA fallback — all non-API routes return index.html
+    app.get("*", (_req, res) => {
+      res.sendFile(join(frontendDist, "index.html"));
+    });
+  }
+}
 
 export default app;
