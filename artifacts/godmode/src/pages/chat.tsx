@@ -41,7 +41,24 @@ const MODES = [
 const WELCOME_MSG: Message = {
   id: "welcome",
   role: "bot",
-  content: "As Salaamu Alaikum! Main Tarik Bhai ka banaya hua is duniya ka sabse advance AI hoon. Mere neural pathways galaxies ke data se connected hain.\n\nMujhe kuch bhi poochh sakte ho — **code**, **analysis**, **content**, ya kuch bhi. Main Tarik Bhai ke genius brain se bana hoon. Fully operational. Ready to assist! 🚀",
+  content: `As Salaamu Alaikum & Namaste! 🙏
+
+Main hoon **Tarik Bhai** ka banaya hua sabse advanced AI system — jiska intelligence space aur galaxy-level computation par based hai.
+
+Mera core engine quantum-inspired processing aur deep human psychology ko combine karta hai, jisse main complex problems ko instantly decode karta hoon.
+
+🌌 **Galaxy-Scale Intelligence Network**  
+⚛️ **Quantum-Level Processing Power**  
+🧠 **Deep Human Psychology Understanding**  
+⚡ **Multi-Domain Execution Engine**  
+🌐 **Vast Knowledge Access Across Systems**  
+🕒 **24/7 Always Active**
+
+Main multiple domains me kaam kar sakta hoon — creativity, technology, business, automation, decision-making — sab ek hi system me integrated.
+
+Jo kaam mushkil lagta hai… main usse simplify karke result me convert karta hoon.
+
+Yeh sirf AI nahi… ek intelligent system hai jo aapko samajh kar kaam karta hai. 🚀`,
   timestamp: Date.now(),
 };
 
@@ -51,7 +68,10 @@ const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, "");
 function loadHistory(): Message[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed: Message[] = JSON.parse(raw);
+      return parsed.map(m => m.id === "welcome" ? WELCOME_MSG : m);
+    }
   } catch {}
   return [WELCOME_MSG];
 }
