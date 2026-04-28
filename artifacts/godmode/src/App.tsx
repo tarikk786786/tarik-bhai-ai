@@ -36,17 +36,7 @@ function App() {
             <ParticleBackground />
             <SparkleEffect />
             <Navbar />
-            {/* Scrolling Marquee */}
-            <div className="w-full border-b border-[#00a884]/20 mt-[60px] z-20 relative flex items-center overflow-hidden bg-[#0b141a]/80">
-              <div className="animate-marquee whitespace-nowrap flex items-center py-1.5">
-                {[1, 2, 3].map(i => (
-                  <span key={i} className="text-[#00a884]/70 font-mono text-[10px] tracking-widest uppercase mx-8">
-                    ⚡ SYSTEM ONLINE // ADVANCED SPACE TECHNOLOGY NEXUS // TARIK BHAI AI PROTOCOL ACTIVE // QUANTUM INTELLIGENCE ENGAGED // COSMIC NEXUS INITIALIZED // 800+ AI MODELS READY // STREAMING @ 0.3s ⚡
-                  </span>
-                ))}
-              </div>
-            </div>
-            <main className="flex-1 flex flex-col relative z-10 w-full overflow-hidden">
+            <main className="flex-1 flex flex-col relative z-10 w-full overflow-hidden mt-[60px]">
               <Router />
             </main>
           </div>
