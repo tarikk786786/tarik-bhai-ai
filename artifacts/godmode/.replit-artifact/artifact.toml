@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "G0DM0D3"
+version = "1.0.0"
+id = "artifacts/godmode"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20519
+
+[services.development]
+run = "pnpm --filter @workspace/godmode run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/godmode", "run", "build" ]
+publicDir = "artifacts/godmode/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20519"
+BASE_PATH = "/"

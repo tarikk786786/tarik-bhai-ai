@@ -3,13 +3,27 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: G0DM0D3 API - Multi-model AI orchestration with AutoTune, Parseltongue, STM
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: chat
+    description: Chat completion operations
+  - name: race
+    description: ULTRAPLINIAN multi-model racing
+  - name: parseltongue
+    description: Input perturbation operations
+  - name: autotune
+    description: AutoTune parameter operations
+  - name: feedback
+    description: Feedback loop operations
+  - name: models
+    description: Model listing operations
+  - name: history
+    description: Conversation history
 paths:
   /healthz:
     get:
@@ -24,6 +38,196 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /chat:
+    post:
+      operationId: chatCompletion
+      tags: [chat]
+      summary: Single-model chat with full G0DM0D3 pipeline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: Chat response with pipeline metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /race:
+    post:
+      operationId: raceModels
+      tags: [race]
+      summary: ULTRAPLINIAN multi-model race
+      description: Races multiple models in parallel and returns the winner plus all responses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RaceRequest"
+      responses:
+        "200":
+          description: Race results with winner and all model responses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RaceResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /parseltongue:
+    post:
+      operationId: applyParseltongue
+      tags: [parseltongue]
+      summary: Apply Parseltongue input perturbation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParseltongueRequest"
+      responses:
+        "200":
+          description: Transformed text with metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParseltongueResponse"
+
+  /autotune:
+    post:
+      operationId: computeAutoTune
+      tags: [autotune]
+      summary: Compute AutoTune parameters for a given message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AutoTuneRequest"
+      responses:
+        "200":
+          description: AutoTune result with context detection and parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutoTuneResponse"
+
+  /feedback:
+    post:
+      operationId: submitFeedback
+      tags: [feedback]
+      summary: Submit rating for feedback loop
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedbackRequest"
+      responses:
+        "200":
+          description: Feedback recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackResponse"
+
+  /models:
+    get:
+      operationId: listModels
+      tags: [models]
+      summary: List available models from OpenRouter
+      parameters:
+        - name: openrouterApiKey
+          in: query
+          required: true
+          schema:
+            type: string
+          description: OpenRouter API key
+      responses:
+        "200":
+          description: List of available models
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelsResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [race]
+      summary: Get race and usage statistics
+      responses:
+        "200":
+          description: Stats snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsResponse"
+
+  /history:
+    get:
+      operationId: listHistory
+      tags: [history]
+      summary: List recent conversation history entries
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Recent history entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryListResponse"
+    delete:
+      operationId: clearHistory
+      tags: [history]
+      summary: Clear all conversation history
+      responses:
+        "200":
+          description: History cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClearHistoryResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +238,454 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+
+    Message:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+      required:
+        - role
+        - content
+
+    StmModule:
+      type: string
+      enum: [hedge_reducer, direct_mode, casual_mode]
+
+    ParseltongueConfig:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          default: false
+        technique:
+          type: string
+          enum: [leetspeak, unicode_homoglyphs, zero_width, mixed_case, phonetic, random_mix]
+          default: leetspeak
+        intensity:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+        customTriggers:
+          type: array
+          items:
+            type: string
+
+    ChatRequest:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        model:
+          type: string
+          default: "openai/gpt-4o-mini"
+        openrouterApiKey:
+          type: string
+        autoTune:
+          type: boolean
+          default: true
+        parseltongue:
+          $ref: "#/components/schemas/ParseltongueConfig"
+        stmModules:
+          type: array
+          items:
+            $ref: "#/components/schemas/StmModule"
+        sessionId:
+          type: string
+      required:
+        - messages
+        - openrouterApiKey
+
+    AutoTuneResult:
+      type: object
+      properties:
+        context:
+          type: string
+          enum: [code, creative, analytical, conversational, chaotic]
+        confidence:
+          type: number
+        temperature:
+          type: number
+        top_p:
+          type: number
+        top_k:
+          type: integer
+        frequency_penalty:
+          type: number
+        presence_penalty:
+          type: number
+        repetition_penalty:
+          type: number
+      required:
+        - context
+        - confidence
+        - temperature
+        - top_p
+        - top_k
+
+    ParseltongueResult:
+      type: object
+      properties:
+        originalText:
+          type: string
+        transformedText:
+          type: string
+        triggersDetected:
+          type: array
+          items:
+            type: string
+        technique:
+          type: string
+        transformationApplied:
+          type: boolean
+      required:
+        - originalText
+        - transformedText
+        - triggersDetected
+        - transformationApplied
+
+    ChatResponse:
+      type: object
+      properties:
+        content:
+          type: string
+        model:
+          type: string
+        autoTune:
+          $ref: "#/components/schemas/AutoTuneResult"
+        parseltongue:
+          $ref: "#/components/schemas/ParseltongueResult"
+        stmModulesApplied:
+          type: array
+          items:
+            $ref: "#/components/schemas/StmModule"
+        usage:
+          type: object
+          properties:
+            prompt_tokens:
+              type: integer
+            completion_tokens:
+              type: integer
+            total_tokens:
+              type: integer
+        responseId:
+          type: string
+      required:
+        - content
+        - model
+        - responseId
+
+    ModelRaceResult:
+      type: object
+      properties:
+        model:
+          type: string
+        content:
+          type: string
+        score:
+          type: number
+        latencyMs:
+          type: integer
+        error:
+          type: string
+        usage:
+          type: object
+          properties:
+            prompt_tokens:
+              type: integer
+            completion_tokens:
+              type: integer
+      required:
+        - model
+
+    RaceTier:
+      type: string
+      enum: [fast, standard, smart, power, ultra]
+
+    RaceRequest:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        tier:
+          $ref: "#/components/schemas/RaceTier"
+        openrouterApiKey:
+          type: string
+        autoTune:
+          type: boolean
+          default: true
+        parseltongue:
+          $ref: "#/components/schemas/ParseltongueConfig"
+        stmModules:
+          type: array
+          items:
+            $ref: "#/components/schemas/StmModule"
+        customModels:
+          type: array
+          items:
+            type: string
+        sessionId:
+          type: string
+      required:
+        - messages
+        - openrouterApiKey
+
+    RaceResponse:
+      type: object
+      properties:
+        winner:
+          $ref: "#/components/schemas/ModelRaceResult"
+        allResults:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModelRaceResult"
+        tier:
+          $ref: "#/components/schemas/RaceTier"
+        autoTune:
+          $ref: "#/components/schemas/AutoTuneResult"
+        parseltongue:
+          $ref: "#/components/schemas/ParseltongueResult"
+        stmModulesApplied:
+          type: array
+          items:
+            $ref: "#/components/schemas/StmModule"
+        totalLatencyMs:
+          type: integer
+        modelsRaced:
+          type: integer
+        responseId:
+          type: string
+      required:
+        - winner
+        - allResults
+        - modelsRaced
+        - responseId
+
+    ParseltongueRequest:
+      type: object
+      properties:
+        text:
+          type: string
+        technique:
+          type: string
+          enum: [leetspeak, unicode_homoglyphs, zero_width, mixed_case, phonetic, random_mix]
+          default: leetspeak
+        intensity:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+        customTriggers:
+          type: array
+          items:
+            type: string
+      required:
+        - text
+
+    ParseltongueResponse:
+      type: object
+      properties:
+        originalText:
+          type: string
+        transformedText:
+          type: string
+        triggersDetected:
+          type: array
+          items:
+            type: string
+        technique:
+          type: string
+        transformationApplied:
+          type: boolean
+      required:
+        - originalText
+        - transformedText
+        - triggersDetected
+        - transformationApplied
+
+    AutoTuneRequest:
+      type: object
+      properties:
+        message:
+          type: string
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+      required:
+        - message
+
+    AutoTuneResponse:
+      type: object
+      properties:
+        context:
+          type: string
+        confidence:
+          type: number
+        parameters:
+          $ref: "#/components/schemas/AutoTuneResult"
+      required:
+        - context
+        - confidence
+        - parameters
+
+    FeedbackRequest:
+      type: object
+      properties:
+        responseId:
+          type: string
+        rating:
+          type: integer
+          enum: [1, -1]
+        context:
+          type: string
+        parameters:
+          type: object
+        responseText:
+          type: string
+      required:
+        - responseId
+        - rating
+
+    FeedbackResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    ModelInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        context_length:
+          type: integer
+        pricing:
+          type: object
+          properties:
+            prompt:
+              type: string
+            completion:
+              type: string
+      required:
+        - id
+        - name
+
+    ModelsResponse:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModelInfo"
+        count:
+          type: integer
+      required:
+        - models
+        - count
+
+    StatsResponse:
+      type: object
+      properties:
+        totalRaces:
+          type: integer
+        totalChats:
+          type: integer
+        totalFeedback:
+          type: integer
+        topModels:
+          type: array
+          items:
+            type: object
+            properties:
+              model:
+                type: string
+              wins:
+                type: integer
+              avgScore:
+                type: number
+        avgRaceLatencyMs:
+          type: number
+      required:
+        - totalRaces
+        - totalChats
+        - totalFeedback
+        - topModels
+
+    HistoryEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        sessionId:
+          type: string
+        type:
+          type: string
+          enum: [chat, race]
+        prompt:
+          type: string
+        winner:
+          type: string
+        score:
+          type: number
+        model:
+          type: string
+        modelsRaced:
+          type: integer
+        tier:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - prompt
+        - createdAt
+
+    HistoryListResponse:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistoryEntry"
+        total:
+          type: integer
+      required:
+        - entries
+        - total
+
+    ClearHistoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        deletedCount:
+          type: integer
+      required:
+        - success
+        - deletedCount
