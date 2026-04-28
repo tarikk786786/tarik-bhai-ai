@@ -23,7 +23,7 @@ export default function SettingsPage() {
     <Layout>
       <div className="max-w-2xl">
         <div className="mb-8 border-b border-border pb-4">
-          <h2 className="text-2xl font-bold uppercase tracking-wider text-primary">System Config</h2>
+          <h2 className="text-2xl font-bold uppercase tracking-wider text-primary">tarik Bhai AI — Config</h2>
           <p className="text-muted-foreground mt-2">Manage API keys and local preferences. Data never leaves your machine except for API requests.</p>
         </div>
 

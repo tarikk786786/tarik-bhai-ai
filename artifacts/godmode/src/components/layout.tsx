@@ -22,8 +22,8 @@ export function Layout({ children }: LayoutProps) {
       {/* Sidebar */}
       <aside className="w-64 border-r border-border bg-card flex flex-col">
         <div className="p-6 border-b border-border">
-          <h1 className="text-2xl font-bold tracking-tighter text-primary">G0DM0D3</h1>
-          <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest">Orchestration</p>
+          <h1 className="text-2xl font-bold tracking-tighter text-primary">tarik Bhai</h1>
+          <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest">AI Orchestration</p>
         </div>
         
         <nav className="flex-1 py-6 px-4 space-y-2">

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { Layout } from "@/components/layout";
 import { useApiKey } from "@/hooks/use-api-key";
 import { 
@@ -14,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Play, Trophy, AlertTriangle, MessageSquare, Zap, Fingerprint, Activity, Clock, ThumbsUp, ThumbsDown, Check, Eye } from "lucide-react";
+import { Loader2, Play, Trophy, AlertTriangle, MessageSquare, Zap, Fingerprint, Activity, Clock, ThumbsUp, ThumbsDown, Check, Eye, KeyRound } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -132,6 +133,22 @@ export default function HomePage() {
 
   return (
     <Layout>
+      {!apiKey && (
+        <div className="mb-6 border border-yellow-500/50 bg-yellow-500/10 p-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <KeyRound className="w-5 h-5 text-yellow-400 shrink-0" />
+            <div>
+              <p className="text-sm font-bold uppercase tracking-widest text-yellow-400">OpenRouter API Key Required</p>
+              <p className="text-xs text-yellow-400/70 mt-0.5">tarik Bhai AI needs your OpenRouter key to run. It is stored only in your browser.</p>
+            </div>
+          </div>
+          <Link href="/settings">
+            <button className="bg-yellow-500 text-black text-xs font-bold uppercase tracking-widest px-4 py-2 hover:bg-yellow-400 transition-colors whitespace-nowrap">
+              Set Key Now
+            </button>
+          </Link>
+        </div>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
         {/* Left Panel: Controls */}
         <div className="col-span-1 lg:col-span-4 space-y-6">
@@ -466,7 +483,7 @@ export default function HomePage() {
                   <Activity className="w-16 h-16 opacity-20" />
                   <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full"></div>
                 </div>
-                <p className="text-sm font-mono tracking-widest uppercase">Telemetry offline. Awaiting sequence.</p>
+                <p className="text-sm font-mono tracking-widest uppercase">tarik Bhai AI ready. Enter a prompt and execute.</p>
               </div>
             )}
             
