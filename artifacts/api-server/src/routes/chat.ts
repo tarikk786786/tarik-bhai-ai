@@ -52,10 +52,11 @@ function resolveApiKey(data: z.infer<typeof ChatRequestSchema>): {
   baseUrl?: string;
   model?: string;
 } | null {
+  // 1. User-provided key always wins
   const userKey = data.apiKey || data.openaiApiKey || data.openrouterApiKey;
   if (userKey) return { key: userKey, isSystemKey: false };
 
-  // Prefer Replit AI integration (always works, no credits needed)
+  // 2. Replit AI integration — always available, no credits needed (reliable fallback)
   if (REPLIT_AI_BASE_URL && REPLIT_AI_API_KEY) {
     return {
       key: REPLIT_AI_API_KEY,
@@ -65,9 +66,14 @@ function resolveApiKey(data: z.infer<typeof ChatRequestSchema>): {
     };
   }
 
-  // Last resort: any configured key in env
-  const sysKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
-  if (sysKey) return { key: sysKey, isSystemKey: true };
+  // 3. System OpenRouter key
+  const orKey = process.env.OPENROUTER_API_KEY;
+  if (orKey) return { key: orKey, isSystemKey: true };
+
+  // 4. System OpenAI key
+  const oaiKey = process.env.OPENAI_API_KEY;
+  if (oaiKey) return { key: oaiKey, isSystemKey: true };
+
   return null;
 }
 
