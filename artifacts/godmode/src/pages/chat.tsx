@@ -282,14 +282,22 @@ function loadHistory(): Message[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed: Message[] = JSON.parse(raw);
-      return parsed.filter(m => m.id !== "welcome");
+      return parsed.filter(m =>
+        m.id !== "welcome" &&
+        !m.streaming &&
+        (m.role !== "bot" || m.content.trim().length > 0)
+      );
     }
   } catch {}
   return [];
 }
 
 function saveHistory(msgs: Message[]) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs.slice(-100))); } catch {}
+  try {
+    // Never save messages that are mid-stream or came back empty
+    const completed = msgs.filter(m => !m.streaming && (m.role !== "bot" || m.content.trim().length > 0));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(completed.slice(-100)));
+  } catch {}
 }
 
 function CopyBtn({ text }: { text: string }) {
@@ -395,12 +403,11 @@ export default function ChatPage() {
         for (const line of lines) {
           const t = line.trim();
           if (!t.startsWith("data: ")) continue;
-          try {
-            const d = JSON.parse(t.slice(6));
-            if (d.type === "token") appendChunk(bid, d.content);
-            else if (d.type === "done") finalModel = d.model || finalModel;
-            else if (d.type === "error") throw new Error(d.message);
-          } catch {}
+          let d: { type: string; content?: string; model?: string; message?: string };
+          try { d = JSON.parse(t.slice(6)); } catch { continue; }
+          if (d.type === "token") appendChunk(bid, d.content ?? "");
+          else if (d.type === "done") finalModel = d.model || finalModel;
+          else if (d.type === "error") throw new Error(d.message || "Unknown AI error");
         }
       }
       setMessages(prev => prev.map(m => m.id === bid ? { ...m, streaming: false, model: finalModel } : m));
